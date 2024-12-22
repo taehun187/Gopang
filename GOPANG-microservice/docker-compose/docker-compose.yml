@@ -1,0 +1,158 @@
+version: "3"
+services:
+  database:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    networks:
+      backend:
+        aliases:
+          - "database"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./db/conf.d:/etc/mysql/conf.d
+      - ./db/data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - "${ZOOKEEPER_PORT}:${ZOOKEEPER_PORT}"
+    networks:
+      backend:
+        aliases:
+          - "zookeeper"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: 'bitnami/kafka:latest'
+    ports:
+      - "${KAFKA_PORT}:${KAFKA_PORT}"
+    networks:
+      backend:
+        aliases:
+          - "kafka"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:${KAFKA_PORT}
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:${KAFKA_PORT}
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:${ZOOKEEPER_PORT}
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  gatewayserver:
+    image: gopang/gatewayserver:0.0.1-SNAPSHOT
+    ports:
+      - "${SERVER_PORT_GATEWAY}:${SERVER_PORT_GATEWAY}"
+    environment:
+      SERVER_PORT: "${SERVER_PORT_GATEWAY}"
+      CONFIGSERVER_URI: "${CONFIGSERVER_URI}"
+      EUREKASERVER_URI: "${EUREKASERVER_URI}"
+      CONFIGSERVER_PORT: "${SERVER_PORT_CONFIG}"
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+      eurekaserver:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "gatewayserver"
+
+  configserver:
+    image: gopang/configserver:0.0.1-SNAPSHOT
+    ports:
+      - "${SERVER_PORT_CONFIG}:${SERVER_PORT_CONFIG}"
+    networks:
+      backend:
+        aliases:
+          - "configserver"
+
+  eurekaserver:
+    image: gopang/eurekaserver:0.0.1-SNAPSHOT
+    ports:
+      - "${SERVER_PORT_EUREKA}:${SERVER_PORT_EUREKA}"
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "eurekaserver"
+
+  orderservice:
+    image: gopang/orderserver:0.0.2-SNAPSHOT
+    environment:
+      DATABASESERVER_PORT: "3306"
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+      kafka:
+        condition: service_started
+    ports:
+      - "${SERVER_PORT_ORDER}:${SERVER_PORT_ORDER}"
+    networks:
+      - backend
+
+  gopangpayment:
+    image: gopang/paymentserver:0.0.1-SNAPSHOT
+    container_name: gopangpayment
+    environment:
+      DATABASESERVER_PORT: "3306"
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+    ports:
+      - "${SERVER_PORT_PAYMENT}:${SERVER_PORT_PAYMENT}"
+    networks:
+      - backend
+
+  gopangitems:
+    image: gopang/itemserver:0.0.1-SNAPSHOT
+    ports:
+      - "${SERVER_PORT_ITEM}:${SERVER_PORT_ITEM}"
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "itemserver"
+
+  oauth2server:
+    image: gopang/oauth2server:0.0.1-SNAPSHOT
+    ports:
+      - "${SERVER_PORT_OAUTH2}:${SERVER_PORT_OAUTH2}"
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "oauth2server"
+
+networks:
+  backend:
+    driver: bridge
