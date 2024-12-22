@@ -1,5 +1,6 @@
 # GOPANG Microservice Project
 **GOPANG-microservice**는 마이크로서비스 아키텍처를 기반으로 설계된 프로젝트로, 쇼핑 또는 결제 플랫폼과 같은 복잡한 시스템을 여러 독립적인 서비스로 나누어 관리하며 유연성과 확장성을 제공합니다.
+각 서버별 폴더안에 README.md 첨부
 <br>
 <br>
 
@@ -46,35 +47,54 @@
 
 ## 📦 주요 디렉토리 구조
 ---
-'''
+```
 GOPANG-microservice/
 ├── configserver/                # Config Server 소스코드
 │   ├── src/main/java/com/gopang/configserver/
-│   ├── resources/
-├── eurekaserver/                # Eureka Server 소스코드
-│   ├── src/main/resources/
-│   ├── build.gradle
+│   ├── src/main/resources/     # 설정 파일 위치
+│   ├── build.gradle            # Gradle 빌드 파일
+│
+├── eurekaserver/                # Eureka Server 소스코드 (서비스 디스커버리)
+│   ├── src/main/java/com/gopang/eurekaserver/
+│   ├── src/main/resources/     # 설정 파일 및 애플리케이션 프로퍼티
+│   ├── build.gradle            # Gradle 빌드 파일
+│
 ├── gatewayserver/               # API Gateway 소스코드
 │   ├── src/main/java/com/gopang/gatewayserver/
 │   │   ├── filters/            # JWT 인증 및 트래킹 필터
-│   ├── src/main/resources/
+│   │   ├── config/             # Gateway 라우팅 설정
+│   ├── src/main/resources/     # 설정 파일 및 YAML 설정
+│   ├── build.gradle            # Gradle 빌드 파일
+│
 ├── paymentserver/               # 결제 서비스
 │   ├── src/main/java/com/gopang/paymentserver/
-│   │   ├── authentication/     # 토큰 인증
+│   │   ├── authentication/     # 토큰 인증 관련 클래스
 │   │   ├── controller/         # 결제 REST 컨트롤러
 │   │   ├── domain/             # 결제/취소 도메인 클래스
-│   ├── src/main/resources/
+│   │   ├── service/            # 결제 로직 서비스
+│   ├── src/main/resources/     # 설정 파일 및 프로퍼티 관리
+│   ├── build.gradle            # Gradle 빌드 파일
+│
 ├── oauth2server/                # OAuth2 인증 서버
-├── docker-compose/              # Docker Compose 파일
-
-'''
+│   ├── src/main/java/com/gopang/oauth2server/
+│   ├── src/main/resources/     # 설정 파일 및 인증 설정 관리
+│   ├── build.gradle            # Gradle 빌드 파일
+│
+├── docker-compose/              # Docker Compose 파일 및 환경 설정
+│   ├── docker-compose.yml      # Docker 컨테이너 구성 관리 파일
+│   ├── init.sql                # 데이터베이스 초기화 스크립트
+│
+├── README.md                    # 프로젝트 설명 파일
+├── .gitignore                   # Git에 추가하지 않을 파일 설정
+```
 ---
+
 <br>
 <br>
 
 ## 🔗 주요 기술 스택
 - **Backend**:
-    - **Java**, Spring Boot
+    - Java, Spring Boot
     - Spring Cloud (Config, Eureka, Gateway)
     - Spring Data JPA
 
