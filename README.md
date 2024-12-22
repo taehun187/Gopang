@@ -1,6 +1,6 @@
 # GOPANG Microservice Project
 **GOPANG-microservice**는 마이크로서비스 아키텍처를 기반으로 설계된 프로젝트로, 쇼핑 또는 결제 플랫폼과 같은 복잡한 시스템을 여러 독립적인 서비스로 나누어 관리하며 유연성과 확장성을 제공합니다.
-각 서버별 폴더안에 README.md 첨부
+
 <br>
 <br>
 
