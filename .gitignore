@@ -1,0 +1,8 @@
+     *.env
+     *.iml
+     build/
+     *.class
+     .idea/
+     .DS_Store
+     node_modules/
+     target/
